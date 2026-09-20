@@ -22,6 +22,7 @@ A modern SwiftUI iOS application configured to build in the cloud via **GitHub A
 ## Documentation
 
 - [**Cross-Platform Installation Guide (GUIDE.md)**](GUIDE.md): Detailed step-by-step instructions with platform dropdowns for **Linux (Fedora, Ubuntu, Arch)**, **Windows**, **macOS**, and **Wire-Free iOS (SideStore)**.
+- [**Printable PDF Guide (GUIDE.pdf)**](GUIDE.pdf): Typeset PDF version of the complete guide.
 
 ---
 
@@ -40,6 +41,8 @@ A modern SwiftUI iOS application configured to build in the cloud via **GitHub A
 ├── project.yml              # Declarative XcodeGen configuration
 ├── .gitignore
 ├── GUIDE.md                 # Full installation & sideloading guide
+├── GUIDE.tex                # LaTeX source for printable PDF guide
+├── GUIDE.pdf                # Compiled publication-ready PDF guide
 └── README.md
 ```
 
@@ -47,17 +50,31 @@ A modern SwiftUI iOS application configured to build in the cloud via **GitHub A
 
 ## Quick Start
 
-### 1. Push to GitHub
+### 1. Clone, Re-initialize Git & Push
 ```bash
+# Clone this template
+git clone https://github.com/Mehdirben/iosapp.git my-ios-app
+cd my-ios-app
+
+# Re-initialize a fresh git history
+rm -rf .git
 git init
 git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/<your-user>/<your-repo>.git
-git push -u origin main
+git commit -m "Initial commit: fresh iOS app"
 ```
 
-### 2. Download the IPA
+**Push to GitHub:**
+- **In VS Code (Easiest)**: Open the folder (`code .`), go to the **Source Control** tab (`Ctrl+Shift+G`), and click **"Publish to GitHub"**. It automatically creates the repository and pushes!
+- **Or via CLI**:
+  ```bash
+  git branch -M main
+  git remote add origin https://github.com/<your-user>/<your-repo>.git
+  git push -u origin main
+  ```
+
+*(Optional: Rename your app in `project.yml` and `Sources/App/Info.plist` before pushing).*
+
+### 2. Download the Compiled IPA
 Go to the **Actions** tab in your repository, select the latest build, and download **`MyiOSApp-unsigned-ipa`**.
 
 ### 3. Install on iPhone

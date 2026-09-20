@@ -29,24 +29,48 @@ flowchart TD
 
 ---
 
-## Step 1: Push Project to GitHub
+## Step 1: Clone Template, Initialize Git & Push
 
-1. Clone or navigate into your project repository directory:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit: iOS Swift starter app"
-   ```
+To create your own fresh iOS app using this template, clone this repository, re-initialize git, and push it to your own GitHub account:
 
-2. Create a new repository on [GitHub](https://github.com/new) (can be Public or Private).
-   > **Note on Actions Quota**: Public repositories have **unlimited free GitHub Actions minutes**. Private repositories receive 2,000 free runner minutes/month. Each iOS build takes ~1–2 minutes.
+### 1. Clone & Re-initialize Git
+```bash
+# Clone this template
+git clone https://github.com/Mehdirben/iosapp.git my-ios-app
+cd my-ios-app
 
-3. Push your code to GitHub:
-   ```bash
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/<your-repo-name>.git
-   git push -u origin main
-   ```
+# Re-initialize a fresh git history for your project
+rm -rf .git
+git init
+git add .
+git commit -m "Initial commit: fresh iOS app template"
+```
+
+*(Optional)*: Open `project.yml` to change the app name (`name: MyiOSApp`) and bundle ID (`com.example.myiosapp`) to whatever you like.
+
+### 2. Push to Your GitHub
+
+Choose whichever method you prefer:
+
+#### Option A: One-Click GUI via VS Code (Easiest)
+1. Open the project folder in VS Code (`code .`).
+2. Switch to the **Source Control** tab in the sidebar (`Ctrl+Shift+G` or `Cmd+Shift+G`).
+3. Click the **"Publish to GitHub"** button.
+4. Select **"Publish to GitHub Public Repository"** or **"Publish to GitHub Private Repository"**.
+5. VS Code will automatically create the remote repository under your GitHub account, set up the remote, and push your code in a single click!
+
+> **Actions Quota**: Public repositories have **unlimited free GitHub Actions minutes**. Private repositories get 2,000 free runner minutes/month. Each build takes ~1.5 minutes.
+
+#### Option B: Via Terminal / CLI
+1. Create a new repository on [GitHub](https://github.com/new).
+2. Run the following commands:
+```bash
+git branch -M main
+git remote add origin https://github.com/<your-username>/<your-repo-name>.git
+git push -u origin main
+```
+
+Once pushed, GitHub Actions immediately begins compiling your app in the cloud!
 
 ---
 
@@ -156,8 +180,8 @@ Unlike macOS or Linux, Windows has no native drivers for iPhone USB communicatio
 > **Why you CANNOT use the Microsoft Store version**:
 > Microsoft Store apps run inside a locked, isolated sandbox. Sideloadly cannot access the drivers or files inside that sandbox. You **must** download and install the direct standalone installers from Apple using the links below:
 
-1. **Download & Install iTunes (64-bit Windows)**: [Direct Apple Download Link](https://www.apple.com/itunes/download/win64)
-2. **Download & Install iCloud (Windows)**: [Direct Apple Download Link](https://updates.cdn-apple.com/2020/windows/001-39935-20200911-1A70AA56-F448-11EA-8109-AE43397F938A/iCloudSetup.exe)
+1. **Download \& Install iTunes (64-bit Windows)**: [Direct Apple Download Link](https://www.apple.com/itunes/download/win64)
+2. **Download \& Install iCloud (Windows)**: [Direct Apple Download Link](https://updates.cdn-apple.com/2020/windows/001-39935-20200911-1A70AA56-F448-11EA-8109-AE43397F938A/iCloudSetup.exe)
 *(Restart your computer after installing if prompted).*
 
 #### 2. Install Sideloadly:
@@ -165,7 +189,7 @@ Unlike macOS or Linux, Windows has no native drivers for iPhone USB communicatio
 2. Connect your iPhone to your PC using your USB cable.
 3. Unlock your iPhone screen. When prompted with **"Trust This Computer?"**, tap **Trust** and enter your passcode.
 
-#### 3. Sign & Install the App:
+#### 3. Sign \& Install the App:
 1. Open **Sideloadly**. Your connected iPhone will automatically appear in the device dropdown at the top.
 2. Drag and drop your extracted **`MyiOSApp.ipa`** into the large app icon box in Sideloadly.
 3. Type your personal Apple ID email address into the **Apple ID** field.
@@ -279,7 +303,7 @@ Go to **Settings** > **Privacy & Security** > **Developer Mode**, toggle it **ON
 
 ---
 
-## Apple Free Developer Rules & Limits
+## Apple Free Developer Rules \& Limits
 
 | Rule | Limitation | Solution |
 | :--- | :--- | :--- |

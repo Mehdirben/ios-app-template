@@ -1,0 +1,615 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in,headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{etoolbox}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{fontawesome5}
+
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, backgrounds}
+
+% Line and Paragraph Spacing
+\setstretch{1.12}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+
+% List Item Spacing
+\setlist[itemize]{itemsep=4pt, topsep=4pt, parsep=2pt, leftmargin=1.5em}
+\setlist[enumerate]{itemsep=4pt, topsep=4pt, parsep=2pt, leftmargin=1.5em}
+
+% Custom Color Palette
+\definecolor{ghblue}{HTML}{0969DA}
+\definecolor{ghdark}{HTML}{1F2328}
+\definecolor{ghborder}{HTML}{D0D7DE}
+\definecolor{ghcodebg}{HTML}{F6F8FA}
+\definecolor{ghgreen}{HTML}{1A7F37}
+\definecolor{ghbadgebg}{HTML}{DDF4FF}
+\definecolor{ghbadgeborder}{HTML}{54AEFF}
+
+\definecolor{alertred}{HTML}{CF222E}
+\definecolor{alertbg}{HTML}{FFEBE9}
+\definecolor{alertborder}{HTML}{FF8182}
+
+\definecolor{noteblue}{HTML}{0969DA}
+\definecolor{notebg}{HTML}{DDF4FF}
+\definecolor{noteborder}{HTML}{54AEFF}
+
+% Hyperlink configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=ghblue,
+    filecolor=ghblue,
+    urlcolor=ghblue,
+    citecolor=ghblue,
+    pdftitle={Cross-Platform Guide: Build iOS Apps with GitHub and Install Free on iPhone},
+    pdfauthor={Mehdi},
+    pdfsubject={iOS Development without a Mac},
+    pdfkeywords={iOS, Swift, GitHub Actions, Sideloading, Plume Impactor, Sideloadly, Linux}
+}
+
+% Page Header & Footer setup (using \pageref* so the last page number is gray, not a blue link)
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{\small\sffamily\color{gray}\faApple\enskip Cross-Platform iOS Build \& Install Guide}
+\fancyhead[R]{\small\sffamily\color{gray}\faGithub\enskip GitHub Actions \& Free Sideloading}
+\fancyfoot[C]{\small\sffamily\color{gray}Page \thepage\ of \pageref*{LastPage}}
+
+% Plain style for first page
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0.4pt}
+    \fancyfoot[C]{\small\sffamily\color{gray}Page \thepage\ of \pageref*{LastPage}}
+}
+
+% Heading Typography & Spacing
+\titleformat{\section}
+  {\Large\bfseries\sffamily\color{ghdark}}
+  {\thesection}{0.75em}{}
+  [\vspace{3pt}\hrule height 0.6pt]
+
+\titleformat{\subsection}
+  {\large\bfseries\sffamily\color{ghdark}}
+  {\thesubsection}{0.6em}{}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\sffamily\color{ghdark}}
+  {\thesubsubsection}{0.5em}{}
+
+\titlespacing*{\section}{0pt}{18pt plus 3pt minus 2pt}{9pt plus 2pt minus 2pt}
+\titlespacing*{\subsection}{0pt}{14pt plus 3pt minus 2pt}{7pt plus 2pt minus 2pt}
+\titlespacing*{\subsubsection}{0pt}{10pt plus 2pt minus 1pt}{5pt plus 1pt minus 1pt}
+
+% Listings configuration with generous spacing
+\lstdefinestyle{bashstyle}{
+    backgroundcolor=\color{ghcodebg},
+    basicstyle=\ttfamily\footnotesize\color{ghdark},
+    breakatwhitespace=false,
+    breaklines=true,
+    columns=fullflexible,
+    keepspaces=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{ghborder},
+    frameround=tttt,
+    framexleftmargin=8pt,
+    framexrightmargin=8pt,
+    framextopmargin=7pt,
+    framexbottommargin=7pt,
+    aboveskip=10pt,
+    belowskip=10pt
+}
+\lstset{style=bashstyle}
+
+% Prevent code blocks from breaking/dividing across pages
+\BeforeBeginEnvironment{lstlisting}{\par\noindent\begin{minipage}{\linewidth}}
+\AfterEndEnvironment{lstlisting}{\end{minipage}\par}
+
+% Callout Boxes with generous internal & external spacing (unbreakable so they are never split across pages)
+\tcbuselibrary{skins}
+
+\newtcolorbox{notebox}[1][Note]{
+    enhanced,
+    colback=notebg,
+    colframe=noteborder,
+    coltitle=noteblue,
+    fonttitle=\bfseries\sffamily\small,
+    title={\faInfoCircle\enskip #1},
+    arc=5pt,
+    boxrule=0.8pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt,
+    before skip=10pt,
+    after skip=10pt
+}
+
+\newtcolorbox{importantbox}[1][Important]{
+    enhanced,
+    colback=alertbg,
+    colframe=alertborder,
+    coltitle=alertred,
+    fonttitle=\bfseries\sffamily\small,
+    title={\faExclamationTriangle\enskip #1},
+    arc=5pt,
+    boxrule=0.8pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt,
+    before skip=10pt,
+    after skip=10pt
+}
+
+\begin{document}
+
+\thispagestyle{plain}
+
+% Title Banner
+\begin{center}
+    {\huge\bfseries\sffamily Cross-Platform Guide:\\[6pt]
+    Build iOS Apps with GitHub \& Install Free on iPhone}\\[12pt]
+    {\large\sffamily\color{gray} A complete, beginner-friendly guide to building modern Swift iOS apps in the cloud using \textbf{GitHub Actions} and installing them on physical iPhones for \textbf{free} (no paid Apple Developer account or local Mac required).}
+\end{center}
+
+\vspace{10pt}
+
+% Section: Architecture Overview
+\phantomsection
+\addcontentsline{toc}{section}{Architecture Overview}
+\section*{Architecture Overview}
+
+\vspace{4pt}
+
+\begin{center}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    card/.style={
+        rectangle,
+        draw=ghborder,
+        fill=white,
+        thick,
+        rounded corners=5pt,
+        align=center,
+        inner sep=7pt,
+        font=\small\sffamily,
+        text=ghdark,
+        minimum width=6.8cm,
+        minimum height=1.12cm
+    },
+    arrow/.style={
+        -{Stealth[length=2.6mm]},
+        very thick,
+        draw=ghblue
+    },
+    badge/.style={
+        font=\scriptsize\sffamily\bfseries,
+        text=ghblue,
+        fill=ghbadgebg,
+        draw=ghbadgeborder,
+        thin,
+        rounded corners=3pt,
+        inner sep=3pt
+    },
+    paneltitle/.style={
+        font=\bfseries\sffamily\large\color{ghdark},
+        align=center
+    }
+]
+
+% Center coordinates:
+% Left Column: x = 0
+% Right Column: x = 9.0 cm
+% Card width = 6.8 cm
+% Panel 1: x in [-3.7, 3.7] (width = 7.4 cm)
+% Panel 2: x in [5.3, 12.7] (width = 7.4 cm)
+% Corridor: x in [3.7, 5.3], width = 1.6 cm, center x = 4.5 cm
+
+% ==================== PHASE 1: LEFT COLUMN ====================
+\node[paneltitle] (t1) at (0, 0.3) {\faCloud\enskip Phase 1: Cloud CI Build};
+\node[card] (c1) at (0, -0.85) {\faLaptop\enskip\textbf{Local Workstation (Linux / Windows / macOS)}\\[2pt]\footnotesize Write Swift code using your favorite editor};
+\node[card] (c2) at (0, -2.60) {\faGithub\enskip\textbf{GitHub Repository}\\[2pt]\footnotesize Remote source control \& CI workflow triggers};
+\node[card] (c3) at (0, -4.35) {\faServer\enskip\textbf{GitHub Actions macOS 15 Runner}\\[2pt]\footnotesize Cloud CI environment executing XcodeGen};
+\node[card] (c4) at (0, -6.10) {\faCogs\enskip\textbf{xcodebuild Compilation}\\[2pt]\footnotesize Compiles \& packages unsigned \texttt{MyiOSApp.ipa}};
+
+% Connections - Left Column
+\draw[arrow] (c1) -- node[badge] {\faCodeBranch\enskip git push} (c2);
+\draw[arrow] (c2) -- node[badge] {\faPlay\enskip Trigger Workflow} (c3);
+\draw[arrow] (c3) -- node[badge] {\faHammer\enskip XcodeGen + xcodebuild} (c4);
+
+% ==================== PHASE 2: RIGHT COLUMN ====================
+\node[paneltitle] (t2) at (9.0, 0.3) {\faMobile*\enskip Phase 2: Signing \& Device Install};
+\node[card] (c5) at (9.0, -0.85) {\faArchive\enskip\textbf{GitHub Artifacts Archive}\\[2pt]\footnotesize Download compiled \texttt{MyiOSApp.ipa} artifact};
+\node[card] (c6) at (9.0, -2.60) {\faTools\enskip\textbf{Sideloading Utility}\\[2pt]\footnotesize Plume Impactor (Linux) / Sideloadly (Windows / Mac)};
+\node[card] (c7) at (9.0, -4.35) {\faKey\enskip\textbf{Free Apple ID Signing}\\[2pt]\footnotesize Direct 2FA signing via Apple AuthKit servers};
+\node[card] (c8) at (9.0, -6.10) {\faMobile*\enskip\textbf{Physical iPhone (iOS 16+)}\\[2pt]\footnotesize App installed \& verified on physical device};
+
+% Connections - Right Column
+\draw[arrow] (c5) -- node[badge] {\faDownload\enskip Download \& Extract} (c6);
+\draw[arrow] (c6) -- node[badge] {\faShield*\enskip 2FA Apple ID} (c7);
+\draw[arrow] (c7) -- node[badge] {\faUsb\enskip Install via USB} (c8);
+
+% ==================== CENTRAL CORRIDOR ROUTING ====================
+\draw[arrow] (c4.east) -- (4.5, -6.10) -- node[badge, fill=white, draw=ghbadgeborder, midway] {\faUpload\enskip Upload \texttt{.ipa}} (4.5, -0.85) -- (c5.west);
+
+% ==================== BACKGROUND PANELS ====================
+\begin{scope}[on background layer]
+    % Left Panel
+    \draw[ghborder, fill=ghcodebg, thick, rounded corners=8pt] 
+        (-3.7, 0.85) rectangle (3.7, -6.9);
+    % Right Panel
+    \draw[ghborder, fill=ghcodebg, thick, rounded corners=8pt] 
+        (5.3, 0.85) rectangle (12.7, -6.9);
+\end{scope}
+
+\end{tikzpicture}%
+}
+\end{center}
+
+\vspace{8pt}
+
+% Section: Prerequisites
+\phantomsection
+\addcontentsline{toc}{section}{Prerequisites}
+\section*{Prerequisites}
+
+\begin{itemize}
+    \item An \textbf{iPhone} running iOS 16 or newer.
+    \item A free \textbf{Apple ID} (your standard personal Apple account).
+    \item A \textbf{GitHub account}.
+    \item A computer running \textbf{Linux}, \textbf{Windows}, or \textbf{macOS}.
+    \item A standard USB cable to connect your iPhone to your computer for the initial install.
+\end{itemize}
+
+% Section: Step 1
+\phantomsection
+\addcontentsline{toc}{section}{Step 1: Clone Template, Initialize Git \& Push}
+\section*{Step 1: Clone Template, Initialize Git \& Push}
+
+To create your own fresh iOS app using this template, clone this repository, re-initialize a clean git history, and push it to your GitHub account:
+
+\subsection*{1. Clone \& Re-initialize Git}
+\begin{lstlisting}[language=bash]
+# Clone this starter template
+git clone https://github.com/Mehdirben/iosapp.git my-ios-app
+cd my-ios-app
+
+# Re-initialize a fresh git history for your project
+rm -rf .git
+git init
+git add .
+git commit -m "Initial commit: fresh iOS app template"
+\end{lstlisting}
+
+\textit{(Optional: Open \texttt{project.yml} to rename your app and bundle ID to whatever you like)}.
+
+\subsection*{2. Push to Your GitHub}
+
+\begin{notebox}[Actions Quota Considerations]
+Public repositories have \textbf{unlimited free GitHub Actions minutes}. Private repositories receive 2,000 free runner minutes/month. Each iOS build takes only $\sim$1.5 minutes.
+\end{notebox}
+
+Choose whichever method you prefer:
+
+\subsubsection*{Option A: One-Click GUI via VS Code (Easiest)}
+\begin{enumerate}
+    \item Open the project directory in VS Code (\texttt{code .}).
+    \item Switch to the \textbf{Source Control} tab in the sidebar (\texttt{Ctrl+Shift+G} or \texttt{Cmd+Shift+G}).
+    \item Click the \textbf{``Publish to GitHub''} button.
+    \item Select \textbf{``Publish to GitHub Public Repository''} or \textbf{``Publish to GitHub Private Repository''}.
+    \item VS Code will automatically create the remote repository on your GitHub account and push your code in a single click!
+\end{enumerate}
+
+\subsubsection*{Option B: Via Terminal / CLI}
+\begin{enumerate}
+    \item Create a new repository on \href{https://github.com/new}{GitHub} (Public or Private).
+    \item Link your repository and push:
+\begin{lstlisting}[language=bash]
+git branch -M main
+git remote add origin https://github.com/<your-username>/<your-repo-name>.git
+git push -u origin main
+\end{lstlisting}
+\end{enumerate}
+
+Once pushed, GitHub Actions immediately begins compiling your app in the cloud!
+
+% Section: Step 2
+\phantomsection
+\addcontentsline{toc}{section}{Step 2: Download the Compiled IPA}
+\section*{Step 2: Download the Compiled IPA}
+
+\begin{enumerate}
+    \item On GitHub, navigate to the \textbf{Actions} tab of your repository.
+    \item Select the latest workflow run named \textbf{``Build iOS App (Unsigned IPA)''}.
+    \item Once the build finishes (approx. 1.5--2 minutes), scroll down to the \textbf{Artifacts} section.
+    \item Click \textbf{\texttt{MyiOSApp-unsigned-ipa}} to download the zip file.
+    \item Extract the downloaded zip file on your computer to get \textbf{\texttt{MyiOSApp.ipa}}.
+\end{enumerate}
+
+% Section: Step 3
+\phantomsection
+\addcontentsline{toc}{section}{Step 3: Install the App on Your iPhone}
+\section*{Step 3: Install the App on Your iPhone (Choose Your Platform)}
+
+Because the IPA is compiled in CI without Apple certificates, a sideloading utility signs it with your free personal Apple ID before installing it on your device.
+
+% Subsection: Linux
+\phantomsection
+\addcontentsline{toc}{subsection}{Linux (Fedora, Ubuntu, Debian, Arch)}
+\subsection*{\faLinux\enskip Linux (Fedora, Ubuntu, Debian, Arch)}
+
+On Linux, use \href{https://github.com/declaration/impactor}{\textbf{Plume Impactor}} (available directly on \href{https://flathub.org/apps/dev.khcrysalis.PlumeImpactor}{\textbf{Flathub}}) --- a modern, open-source GTK GUI tool that natively supports Apple's AuthKit 2-Factor Authentication (2FA) and free developer signing.
+
+\subsubsection*{1. Install USB Device Communication Tools}
+\begin{itemize}
+    \item \textbf{Fedora / RHEL}:
+\begin{lstlisting}[language=bash]
+sudo dnf install -y usbmuxd libimobiledevice libimobiledevice-utils
+\end{lstlisting}
+    \item \textbf{Ubuntu / Debian}:
+\begin{lstlisting}[language=bash]
+sudo apt update && sudo apt install -y usbmuxd libimobiledevice6 libimobiledevice-utils
+sudo systemctl start usbmuxd
+\end{lstlisting}
+    \item \textbf{Arch Linux}:
+\begin{lstlisting}[language=bash]
+sudo pacman -S usbmuxd libimobiledevice
+sudo systemctl start usbmuxd
+\end{lstlisting}
+\end{itemize}
+
+\subsubsection*{2. Prevent GNOME/KDE from Locking the iPhone on Boot}
+\begin{importantbox}[Volume Monitor Conflict Warning]
+Desktop environments (like GNOME) run background volume monitors (\path{gvfs-gphoto2-volume-monitor} and \path{gvfs-afc-volume-monitor}) that automatically seize the iPhone's USB endpoint and lockdown socket on boot. This triggers \texttt{lockdown error -8} or device-busy conflicts and freezes \texttt{usbmuxd}.
+
+Run this once to permanently prevent these conflicts:
+\end{importantbox}
+
+\begin{lstlisting}[language=bash]
+# Disable file manager automounting
+gsettings set org.gnome.desktop.media-handling automount false
+gsettings set org.gnome.desktop.media-handling automount-open false
+
+# Permanently mask GNOME's conflicting monitors
+systemctl --user stop gvfs-gphoto2-volume-monitor.service gvfs-afc-volume-monitor.service
+systemctl --user mask gvfs-gphoto2-volume-monitor.service gvfs-afc-volume-monitor.service
+killall -9 gvfs-gphoto2-volume-monitor gvfs-afc-volume-monitor gvfsd-gphoto2 2>/dev/null || true
+\end{lstlisting}
+
+\subsubsection*{3. Pair and Trust Your iPhone}
+\begin{enumerate}
+    \item Connect your iPhone via USB and unlock the screen.
+    \item Pair with Linux using the terminal:
+\begin{lstlisting}[language=bash]
+idevicepair pair
+\end{lstlisting}
+    \item A popup saying \textbf{``Trust This Computer?''} will appear on your iPhone screen. Tap \textbf{Trust} and enter your passcode.
+    \item Run \texttt{idevicepair pair} once more to confirm:
+\begin{lstlisting}[language=bash]
+idevicepair pair
+\end{lstlisting}
+    \textit{(It will output: \texttt{SUCCESS: Paired with device <UDID>})}.
+\end{enumerate}
+
+\subsubsection*{4. Install Impactor via Flathub (Recommended)}
+Install \textbf{Plume Impactor} directly from Flathub:
+\begin{lstlisting}[language=bash]
+flatpak install -y flathub dev.khcrysalis.PlumeImpactor
+
+# Grant permission to access local filesystem so you can drag-and-drop .ipa files easily:
+flatpak override --user --filesystem=host dev.khcrysalis.PlumeImpactor
+\end{lstlisting}
+\textit{(Alternative for non-Flatpak systems: download and unpack the AppImage binary from \href{https://github.com/declaration/impactor/releases}{GitHub Releases})}.
+
+\subsubsection*{5. Install the App using Impactor}
+\begin{enumerate}
+    \item Ensure your iPhone is unlocked and connected via USB.
+    \item Launch \textbf{Plume Impactor} from your Applications menu (or run \path{flatpak run dev.khcrysalis.PlumeImpactor}).
+    \begin{notebox}[Sequence Note]
+    Always unlock and connect your iPhone \textbf{before} opening Impactor so it detects the device on launch.
+    \end{notebox}
+    \item Your connected iPhone will appear in the device selector.
+    \item Select or drag-and-drop your extracted \texttt{MyiOSApp.ipa}.
+    \item Sign in with your Apple ID and enter the 6-digit 2FA code sent to your device.
+    \item Click \textbf{Install}.
+\end{enumerate}
+
+% Subsection: Windows
+\phantomsection
+\addcontentsline{toc}{subsection}{Windows}
+\subsection*{\faWindows\enskip Windows}
+
+On Windows, use \href{https://sideloadly.io/}{\textbf{Sideloadly}} --- a beginner-friendly tool to sign and install apps on your iPhone.
+
+\subsubsection*{1. Why iTunes \& iCloud Are Required on Windows}
+Unlike macOS or Linux, Windows has no native drivers for iPhone USB communication, nor libraries to authenticate with Apple's 2FA servers:
+\begin{itemize}
+    \item \textbf{iTunes} provides Apple's official USB driver (\path{usbaapl64.sys}), allowing your PC to see and talk to the iPhone.
+    \item \textbf{iCloud} provides Apple's authentication libraries (\path{ApplePushService.dll}), allowing Sideloadly to perform secure 2-Factor Authentication with Apple.
+\end{itemize}
+
+\begin{importantbox}[Do Not Use the Microsoft Store Version]
+Microsoft Store apps run inside a locked, isolated sandbox. Sideloadly cannot access the drivers or files inside that sandbox. You \textbf{must} download and install the direct standalone installers from Apple using the links below:
+\end{importantbox}
+
+\begin{enumerate}
+    \item \textbf{Download \& Install iTunes (64-bit Windows)}: \href{https://www.apple.com/itunes/download/win64}{Direct Apple Download Link}
+    \item \textbf{Download \& Install iCloud (Windows)}: \href{https://updates.cdn-apple.com/2020/windows/001-39935-20200911-1A70AA56-F448-11EA-8109-AE43397F938A/iCloudSetup.exe}{Direct Apple Download Link}
+\end{enumerate}
+\textit{(Restart your computer after installing if prompted).}
+
+\subsubsection*{2. Install Sideloadly}
+\begin{enumerate}
+    \item Download and install \href{https://sideloadly.io/}{\textbf{Sideloadly (64-bit Windows)}}.
+    \item Connect your iPhone to your PC using your USB cable.
+    \item Unlock your iPhone screen. When prompted with \textbf{``Trust This Computer?''}, tap \textbf{Trust} and enter your passcode.
+\end{enumerate}
+
+\subsubsection*{3. Sign \& Install the App}
+\begin{enumerate}
+    \item Open \textbf{Sideloadly}. Your connected iPhone will automatically appear in the device dropdown at the top.
+    \item Drag and drop your extracted \textbf{\texttt{MyiOSApp.ipa}} into the large app icon box in Sideloadly.
+    \item Type your personal Apple ID email address into the \textbf{Apple ID} field.
+    \item Click \textbf{Start}.
+    \item When prompted, enter your Apple ID password and the 6-digit 2-Factor Authentication code that appears on your iPhone.
+    \item Sideloadly will sign the app with your Apple ID and install it directly to your iPhone home screen!
+\end{enumerate}
+
+% Subsection: macOS
+\phantomsection
+\addcontentsline{toc}{subsection}{macOS}
+\subsection*{\faApple\enskip macOS}
+
+\begin{enumerate}
+    \item Download and install \href{https://sideloadly.io/}{\textbf{Sideloadly}} or \href{https://altstore.io/}{\textbf{AltStore}}.
+    \item Connect your iPhone via USB or enable ``Show this iPhone when on Wi-Fi'' in Finder.
+    \item Open Sideloadly, drag and drop \texttt{MyiOSApp.ipa}, enter your Apple ID, and click \textbf{Start}.
+\end{enumerate}
+\textit{(Alternative for macOS: You can also use \href{https://dantheman827.github.io/ios-app-signer/}{iOS App Signer} + Apple Configurator / Xcode).}
+
+% Subsection: SideStore
+\phantomsection
+\addcontentsline{toc}{subsection}{On-Device / Wire-Free (SideStore)}
+\subsection*{\faWifi\enskip On-Device / Wire-Free (SideStore)}
+
+If you want to install and update apps directly on your iPhone without touching a computer every 7 days:
+
+\begin{enumerate}
+    \item Perform a one-time install of \href{https://sidestore.io/}{\textbf{SideStore}} using your computer (via Impactor, Sideloadly, or AltServer).
+    \item Follow SideStore's on-device setup (installing the WireGuard pairing profile).
+    \item From then on:
+    \begin{itemize}
+        \item Download \texttt{MyiOSApp.ipa} directly from GitHub Actions inside \textbf{Safari on your iPhone}.
+        \item Open SideStore, tap \texttt{+}, and select the downloaded \texttt{.ipa}.
+        \item SideStore will sign, install, and refresh your apps entirely over local Wi-Fi without needing a PC.
+    \end{itemize}
+\end{enumerate}
+
+% Section: Step 4
+\phantomsection
+\addcontentsline{toc}{section}{Step 4: First-Time iOS Device Settings}
+\section*{Step 4: First-Time iOS Device Settings}
+
+The first time you launch an app signed with a personal Apple ID, iOS blocks it until you authorize developer access. This is a one-time setup:
+
+\subsection*{1. Trust Your Developer Certificate}
+\begin{enumerate}
+    \item On your iPhone, open \textbf{Settings} $>$ \textbf{General} $>$ \textbf{VPN \& Device Management}.
+    \item Under \textbf{Developer App}, tap your Apple ID.
+    \item Tap \textbf{Trust ``[Your Apple ID]''} and confirm.
+\end{enumerate}
+
+\subsection*{2. Enable Developer Mode (iOS 16, 17, 18+)}
+\begin{enumerate}
+    \item Open \textbf{Settings} $>$ \textbf{Privacy \& Security}.
+    \item Scroll to the very bottom and tap \textbf{Developer Mode}.
+    \item Toggle it \textbf{ON} and tap \textbf{Restart}.
+    \item After your iPhone reboots, unlock the screen, tap \textbf{Turn On}, and enter your device passcode.
+\end{enumerate}
+
+Your app is now ready to run!
+
+% Section: Troubleshooting
+\phantomsection
+\addcontentsline{toc}{section}{Troubleshooting}
+\section*{Troubleshooting}
+
+\subsection*{Linux: iPhone not detected after restarting laptop or ``Lockdown error -8''}
+
+If your iPhone is not detected after restarting your computer, check these items:
+
+\subsubsection*{1. iPhone is Locked with Passcode (Before First Unlock)}
+After rebooting your computer or iPhone, iOS blocks all USB data transfer for security until you unlock the screen.
+\begin{notebox}[Rule]
+Unlock your iPhone screen with your passcode, then \textbf{unplug and reconnect the USB cable} once so iOS renegotiates the data connection.
+\end{notebox}
+
+\subsubsection*{2. GNOME Monitors Conflict (\texttt{gvfs-gphoto2} \& \texttt{gvfs-afc})}
+GNOME automatically launches camera and Apple file conduit monitors at login, locking the device interface before other apps can use it.
+\begin{lstlisting}[language=bash]
+# Permanent Fix
+systemctl --user stop gvfs-gphoto2-volume-monitor.service gvfs-afc-volume-monitor.service
+systemctl --user mask gvfs-gphoto2-volume-monitor.service gvfs-afc-volume-monitor.service
+killall -9 gvfs-gphoto2-volume-monitor gvfs-afc-volume-monitor gvfsd-gphoto2 2>/dev/null || true
+\end{lstlisting}
+
+\subsubsection*{3. Impactor Opened Before Phone Connected}
+Plume Impactor inspects USB devices once when it opens. If it was launched before you unlocked/plugged in your iPhone, it won't see it.
+\begin{itemize}
+    \item \textbf{Fix}: Close Impactor and reopen it after connecting and unlocking your phone.
+\end{itemize}
+
+Test device communication anytime with:
+\begin{lstlisting}[language=bash]
+idevice_id -l
+\end{lstlisting}
+\textit{(Your iPhone's 40-character UDID should print immediately).}
+
+\subsection*{iOS: ``Untrusted Developer'' Error when Opening App}
+Go to \textbf{Settings} $>$ \textbf{General} $>$ \textbf{VPN \& Device Management}, select your Apple ID, and tap \textbf{Trust}.
+
+\subsection*{iOS 16+: ``Developer Mode Required''}
+Go to \textbf{Settings} $>$ \textbf{Privacy \& Security} $>$ \textbf{Developer Mode}, toggle it \textbf{ON}, and restart your device. Upon reboot, confirm \textbf{Turn On}.
+
+% Section: Apple Rules & Limits
+\phantomsection
+\addcontentsline{toc}{section}{Apple Free Developer Rules \& Limits}
+\section*{Apple Free Developer Rules \& Limits}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\setlength{\tabcolsep}{8pt}
+\begin{tabularx}{\textwidth}{l p{4.0cm} X}
+\toprule
+\textbf{Rule} & \textbf{Limitation} & \textbf{Solution} \\
+\midrule
+\textbf{Certificate Expiration} & 7 days & Re-sign/reinstall the app once a week using your sideloading tool or SideStore. \\
+\addlinespace
+\textbf{Max Sideloaded Apps} & 3 active apps simultaneously & If you hit the limit, delete or deactivate an app in your sideloading tool. \\
+\addlinespace
+\textbf{App ID Registration} & Up to 10 App IDs per 7 days & Keep the \path{bundleIdPrefix} consistent in \path{project.yml}. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% Section: Step 5
+\phantomsection
+\addcontentsline{toc}{section}{Step 5: Developing \& Adding Features}
+\section*{Step 5: Developing \& Adding Features}
+
+You do \textbf{not} need Xcode or a Mac to continue building your application:
+
+\begin{itemize}
+    \item \textbf{Edit UI}: Modify \href{file:///home/mehdi/ex/iosapp/Sources/App/ContentView.swift}{\texttt{ContentView.swift}} or create new SwiftUI views in \texttt{Sources/App/}.
+    \item \textbf{Add Code Files}: Add any \texttt{.swift} files to \texttt{Sources/App/}. When GitHub Actions runs, \href{https://github.com/yonaskolb/XcodeGen}{\textbf{XcodeGen}} automatically scans the folder and updates the project structure.
+    \item \textbf{Deploy Changes}: Commit and push your changes:
+\begin{lstlisting}[language=bash]
+git commit -am "Add new feature"
+git push
+\end{lstlisting}
+    GitHub Actions will compile the new \texttt{.ipa} automatically. Download and install the update!
+\end{itemize}
+
+\end{document}

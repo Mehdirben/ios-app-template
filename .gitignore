@@ -9,3 +9,9 @@ DerivedData/
 # Artifacts
 *.ipa
 *.zip
+
+# LaTeX Build Artifacts
+*.aux
+*.log
+*.out
+*.toc
