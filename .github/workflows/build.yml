@@ -1,0 +1,52 @@
+name: Build iOS App (Unsigned IPA)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Package IPA
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Show Xcode Version
+        run: xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build Archive
+        run: |
+          xcodebuild archive \
+            -project MyiOSApp.xcodeproj \
+            -scheme MyiOSApp \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/MyiOSApp.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Package Payload to IPA
+        run: |
+          mkdir -p build/Payload
+          cp -r build/MyiOSApp.xcarchive/Products/Applications/MyiOSApp.app build/Payload/
+          cd build
+          zip -r -q MyiOSApp.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: MyiOSApp-unsigned-ipa
+          path: build/MyiOSApp.ipa
+          retention-days: 14

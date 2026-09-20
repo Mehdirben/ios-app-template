@@ -1,0 +1,11 @@
+# Xcode & XcodeGen
+*.xcodeproj/
+*.xcworkspace/
+*.xcuserstate
+build/
+DerivedData/
+.DS_Store
+
+# Artifacts
+*.ipa
+*.zip
