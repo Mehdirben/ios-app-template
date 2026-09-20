@@ -3,7 +3,7 @@
 A modern SwiftUI iOS application configured to build in the cloud via **GitHub Actions** and install onto physical iPhones for **free** without needing a local Mac or a paid Apple Developer program.
 
 <p align="center">
-  <a href="GUIDE.md">
+  <a href="GUIDE_IOS_TEMPLATE.md">
     <img src="https://img.shields.io/badge/📖_Complete_Installation_Guide-Click_Here_to_Read-2563EB?style=for-the-badge&logo=gitbook&logoColor=white" alt="Read the Guide" />
   </a>
 </p>
@@ -21,8 +21,8 @@ A modern SwiftUI iOS application configured to build in the cloud via **GitHub A
 
 ## Documentation
 
-- [**Cross-Platform Installation Guide (GUIDE.md)**](GUIDE.md): Detailed step-by-step instructions with platform dropdowns for **Linux (Fedora, Ubuntu, Arch)**, **Windows**, **macOS**, and **Wire-Free iOS (SideStore)**.
-- [**Printable PDF Guide (GUIDE.pdf)**](GUIDE.pdf): Typeset PDF version of the complete guide.
+- [**Cross-Platform Installation Guide (GUIDE_IOS_TEMPLATE.md)**](GUIDE_IOS_TEMPLATE.md): Detailed step-by-step instructions with platform dropdowns for **Linux (Fedora, Ubuntu, Arch)**, **Windows**, **macOS**, and **Wire-Free iOS (SideStore)**.
+- [**Printable PDF Guide (GUIDE_IOS_TEMPLATE.pdf)**](GUIDE_IOS_TEMPLATE.pdf): Typeset PDF version of the complete guide.
 
 ---
 
@@ -40,9 +40,9 @@ A modern SwiftUI iOS application configured to build in the cloud via **GitHub A
 │       └── Assets.xcassets  # App icon & color catalogs
 ├── project.yml              # Declarative XcodeGen configuration
 ├── .gitignore
-├── GUIDE.md                 # Full installation & sideloading guide
-├── GUIDE.tex                # LaTeX source for printable PDF guide
-├── GUIDE.pdf                # Compiled publication-ready PDF guide
+├── GUIDE_IOS_TEMPLATE.md    # Full installation & sideloading guide
+├── GUIDE_IOS_TEMPLATE.tex   # LaTeX source for printable PDF guide
+├── GUIDE_IOS_TEMPLATE.pdf   # Compiled publication-ready PDF guide
 └── README.md
 ```
 
@@ -78,4 +78,4 @@ git commit -m "Initial commit: fresh iOS app"
 Go to the **Actions** tab in your repository, select the latest build, and download **`MyiOSApp-unsigned-ipa`**.
 
 ### 3. Install on iPhone
-Follow the **[Complete Installation Guide (GUIDE.md)](GUIDE.md)** for platform-specific instructions (**Linux**, **Windows**, **macOS**, and **SideStore**), developer mode setup, and troubleshooting.
+Follow the **[Complete Installation Guide (GUIDE_IOS_TEMPLATE.md)](GUIDE_IOS_TEMPLATE.md)** for platform-specific instructions (**Linux**, **Windows**, **macOS**, and **SideStore**), developer mode setup, and troubleshooting.
