@@ -74,8 +74,19 @@ git commit -m "Initial commit: fresh iOS app"
 
 *(Optional: Rename your app in `project.yml` and `Sources/App/Info.plist` before pushing).*
 
-### 2. Download the Compiled IPA
-Go to the **Actions** tab in your repository, select the latest build, and download **`MyiOSApp-unsigned-ipa`**.
+### 2. Install on iPhone
 
-### 3. Install on iPhone
-Follow the **[Complete Installation Guide (GUIDE_IOS_TEMPLATE.md)](GUIDE_IOS_TEMPLATE.md)** for platform-specific instructions (**Linux**, **Windows**, **macOS**, and **SideStore**), developer mode setup, and troubleshooting.
+**Option A — LiveContainer (wire-free updates):** every push to `main` publishes the IPA to a GitHub Release, so this URL always serves the latest build:
+
+```
+https://github.com/Mehdirben/iosapp/releases/latest/download/MyiOSApp.ipa
+```
+
+- In LiveContainer: **+** → **Install from URL** → paste the URL. Installing over an existing copy updates the app.
+- One-tap update link (Safari or Shortcuts):
+  ```
+  livecontainer://install?url=https://github.com/Mehdirben/iosapp/releases/latest/download/MyiOSApp.ipa
+  ```
+- The repo must stay **public** for these URLs to work without authentication.
+
+**Option B — manual sideload:** download the IPA from the repo's **Releases** page (or the **Actions** artifact on PR builds) and follow the **[Complete Installation Guide (GUIDE_IOS_TEMPLATE.md)](GUIDE_IOS_TEMPLATE.md)** for platform-specific instructions (**Linux**, **Windows**, **macOS**, and **SideStore**), developer mode setup, and troubleshooting.

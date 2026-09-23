@@ -18,10 +18,19 @@ jobs:
     # GitHub's free hosted macOS runner — required because only macOS/Xcode can build iOS apps
     runs-on: macos-15
 
+    # Allows the workflow's built-in GITHUB_TOKEN to create Releases below
+    permissions:
+      contents: write
+
     steps:
       # Downloads this repository's code into the runner's workspace
       - name: Checkout repository
         uses: actions/checkout@v5
+
+      # Stamps the CI run number into CFBundleVersion so each build shows a
+      # distinct version inside LiveContainer (easy to confirm an update landed)
+      - name: Stamp Build Number
+        run: plutil -replace CFBundleVersion -string "${{ github.run_number }}" Sources/App/Info.plist
 
       # Purely informational: logs which Xcode version compiled the app
       - name: Show Xcode Version
@@ -64,9 +73,27 @@ jobs:
 
       # Publishes the IPA as a downloadable artifact on the workflow run page
       # (Actions tab -> this run -> Artifacts section). Deleted after 14 days.
+      # Mostly useful for pull-request builds, which skip the Release step below.
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v6
         with:
           name: MyiOSApp-unsigned-ipa
           path: build/MyiOSApp.ipa
           retention-days: 14
+
+      # Attaches every push build to a GitHub Release. Because the asset is always
+      # named MyiOSApp.ipa, this permanent URL always serves the newest build:
+      #   https://github.com/Mehdirben/iosapp/releases/latest/download/MyiOSApp.ipa
+      # LiveContainer installs/updates straight from that URL (unsigned IPAs are
+      # fine — LiveContainer re-signs apps with its own certificate at install).
+      # Runs on push and manual dispatch; skipped for pull_request events,
+      # which get a read-only token.
+      - name: Publish IPA to GitHub Release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}" \
+            build/MyiOSApp.ipa \
+            --title "Build ${{ github.run_number }}" \
+            --generate-notes
