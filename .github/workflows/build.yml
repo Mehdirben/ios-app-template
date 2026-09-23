@@ -1,30 +1,46 @@
+# Name of the workflow, shown in the GitHub "Actions" tab and on commit checks
 name: Build iOS App (Unsigned IPA)
 
+# Events that trigger this workflow to run
 on:
   push:
+    # Rebuild the app on every push to the main/master branch
     branches: [ main, master ]
   pull_request:
+    # Also build PRs targeting main/master, so breakage is caught before merging
     branches: [ main, master ]
+  # Adds a "Run workflow" button in the Actions tab for manual builds
   workflow_dispatch:
 
 jobs:
   build:
     name: Build & Package IPA
+    # GitHub's free hosted macOS runner — required because only macOS/Xcode can build iOS apps
     runs-on: macos-15
 
     steps:
+      # Downloads this repository's code into the runner's workspace
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # Purely informational: logs which Xcode version compiled the app
       - name: Show Xcode Version
         run: xcodebuild -version
 
+      # Installs XcodeGen, which converts project.yml into a real .xcodeproj file.
+      # This keeps the repo free of generated, merge-conflict-prone Xcode project files.
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      # Generates MyiOSApp.xcodeproj from project.yml.
+      # Any new .swift file added under Sources/App/ is picked up automatically at this step.
       - name: Generate Xcode Project
         run: xcodegen generate
 
+      # Compiles an optimized Release build for physical iPhones into an .xcarchive.
+      # The CODE_SIGNING_* flags disable code signing: CI has no Apple certificates,
+      # so the app is built UNSIGNED — a sideloading tool (Impactor/Sideloadly) signs
+      # it later with your free personal Apple ID at install time.
       - name: Build Archive
         run: |
           xcodebuild archive \
@@ -37,6 +53,8 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
 
+      # Wraps the compiled app into an IPA — the format iPhones install.
+      # An IPA is simply a zip archive containing a Payload/ folder with the .app bundle inside.
       - name: Package Payload to IPA
         run: |
           mkdir -p build/Payload
@@ -44,6 +62,8 @@ jobs:
           cd build
           zip -r -q MyiOSApp.ipa Payload
 
+      # Publishes the IPA as a downloadable artifact on the workflow run page
+      # (Actions tab -> this run -> Artifacts section). Deleted after 14 days.
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v6
         with:

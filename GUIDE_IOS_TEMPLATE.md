@@ -113,23 +113,7 @@ On Linux, use **[Plume Impactor](https://github.com/declaration/impactor)** (ava
   sudo systemctl start usbmuxd
   ```
 
-#### 2. Prevent GNOME/KDE from Locking the iPhone on Boot:
-> [!IMPORTANT]
-> Desktop environments (like GNOME) run background volume monitors (`gvfs-gphoto2-volume-monitor` and `gvfs-afc-volume-monitor`) that automatically seize the iPhone's USB endpoint and lockdown socket on boot. This triggers `lockdown error -8` or device-busy conflicts and freezes `usbmuxd`.
->
-> Run this once to permanently prevent these conflicts:
-```bash
-# Disable file manager automounting
-gsettings set org.gnome.desktop.media-handling automount false
-gsettings set org.gnome.desktop.media-handling automount-open false
-
-# Permanently mask GNOME's conflicting monitors
-systemctl --user stop gvfs-gphoto2-volume-monitor.service gvfs-afc-volume-monitor.service
-systemctl --user mask gvfs-gphoto2-volume-monitor.service gvfs-afc-volume-monitor.service
-killall -9 gvfs-gphoto2-volume-monitor gvfs-afc-volume-monitor gvfsd-gphoto2 2>/dev/null || true
-```
-
-#### 3. Pair and Trust Your iPhone:
+#### 2. Pair and Trust Your iPhone:
 1. Connect your iPhone via USB and unlock the screen.
 2. Pair with Linux using the terminal:
    ```bash
@@ -142,7 +126,7 @@ killall -9 gvfs-gphoto2-volume-monitor gvfs-afc-volume-monitor gvfsd-gphoto2 2>/
    ```
    *(It will output: `SUCCESS: Paired with device <UDID>`)*.
 
-#### 4. Install Impactor via Flathub (Recommended):
+#### 3. Install Impactor via Flathub (Recommended):
 Install **Plume Impactor** directly from Flathub:
 ```bash
 flatpak install -y flathub dev.khcrysalis.PlumeImpactor
@@ -153,7 +137,7 @@ flatpak override --user --filesystem=host dev.khcrysalis.PlumeImpactor
 
 *(Alternative for non-Flatpak systems: download and unpack the AppImage binary from [GitHub Releases](https://github.com/declaration/impactor/releases)).*
 
-#### 5. Install the App using Impactor:
+#### 4. Install the App using Impactor:
 1. Ensure your iPhone is unlocked and connected via USB.
 2. Launch **Plume Impactor** from your Applications menu (or run `flatpak run dev.khcrysalis.PlumeImpactor`).
    > **Note**: Always unlock and connect your iPhone **before** opening Impactor so it detects the device on launch.
@@ -262,18 +246,36 @@ If your iPhone is not detected after restarting your computer, check these items
 After rebooting your computer or iPhone, iOS blocks all USB data transfer for security until you unlock the screen.
 - **Rule**: Unlock your iPhone screen with your passcode, then **unplug and reconnect the USB cable** once so iOS renegotiates the data connection.
 
-#### 2. GNOME Monitors Conflict (`gvfs-gphoto2` & `gvfs-afc`)
-GNOME automatically launches camera and Apple file conduit monitors at login, locking the device interface before other apps can use it.
-- **Permanent Fix**:
-  ```bash
-  systemctl --user stop gvfs-gphoto2-volume-monitor.service gvfs-afc-volume-monitor.service
-  systemctl --user mask gvfs-gphoto2-volume-monitor.service gvfs-afc-volume-monitor.service
-  killall -9 gvfs-gphoto2-volume-monitor gvfs-afc-volume-monitor gvfsd-gphoto2 2>/dev/null || true
-  ```
-
-#### 3. Impactor Opened Before Phone Connected
+#### 2. Impactor Opened Before Phone Connected
 Plume Impactor inspects USB devices once when it opens. If it was launched before you unlocked/plugged in your iPhone, it won't see it.
 - **Fix**: Close Impactor and reopen it after connecting and unlocking your phone.
+
+#### 3. Root Cause: iPhone USB Hotspot Conflicts with usbmuxd (`ipheth`)
+If Personal Hotspot is enabled (iOS may enable it automatically for trusted computers when cellular data is on), plugging in the iPhone brings up its USB-tethering interface. The Linux `ipheth` kernel driver claims it and NetworkManager activates it (an `enp...u5c4i2`-style USB-Ethernet interface appears) — and while that interface is coming up, it collides with usbmuxd's device handshake: preflight fails with `lockdown error -8`, the phone starts disconnect/reconnect loops, and usbmuxd stops answering until restarted. This is why the phone is undetected at boot — or hours after boot whenever it's plugged in with hotspot on — yet works perfectly with hotspot off.
+
+**Confirm it is this case:**
+```bash
+lsmod | grep ipheth                                  # tethering driver loaded
+nmcli device | grep "c4i2"                           # hotspot interface active
+journalctl -u usbmuxd -b | grep "lockdown error -8"  # failure signature
+```
+
+**Fixes (pick one):**
+- **Simplest**: turn Personal Hotspot off (Settings → Personal Hotspot) before connecting the iPhone — usbmuxd then starts cleanly.
+- **Permanent, if you never use USB tethering**: blacklist the `ipheth` driver so the tethering interface never activates. Wi-Fi hotspot is unaffected:
+  ```bash
+  echo "blacklist ipheth" | sudo tee /etc/modprobe.d/blacklist-ipheth.conf
+  ```
+  Delete that file to re-enable USB tethering later.
+- **If you want both**: connect the iPhone with hotspot off (usbmuxd completes its handshake), then enable hotspot — both coexist fine afterwards.
+
+#### 4. usbmuxd Wedged Mid-Session (Manual Quick Fix)
+If the phone is attached but invisible (typically after toggling the hotspot while plugged in), restart the daemon:
+```bash
+lsusb | grep -i apple   # phone still physically connected?
+idevice_id -l           # empty output = usbmuxd lost it
+systemctl restart usbmuxd
+```
 
 Test device communication anytime with:
 ```bash
