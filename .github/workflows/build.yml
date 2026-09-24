@@ -83,7 +83,7 @@ jobs:
 
       # Generates an AltStore-format source (apps.json) describing this build.
       # Added to LiveContainer ONCE (+ -> Add Source, or
-      # livecontainer://add-source?url=<json-url>), it makes LiveContainer list
+      # livecontainer://source?url=<encoded-json-url>), it makes LiveContainer list
       # the app and offer a built-in Update button whenever a newer build is
       # published here. The JSON ships on every Release, so this stable URL
       # always serves the current app list:
@@ -103,11 +103,11 @@ jobs:
                 "iconURL": "https://raw.githubusercontent.com/Mehdirben/iosapp/main/Sources/App/Assets.xcassets/AppIcon.appiconset/icon-1024.png",
                 "versions": [
                   {
-                    "version": "1.0.${{ github.run_number }}",
+                    "version": "1.0",
                     "buildVersion": "${{ github.run_number }}",
                     "date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
                     "minOSVersion": "17.0",
-                    "versionDescription": "Automated build from commit ${{ github.sha }}",
+                    "localizedDescription": "Automated build from commit ${{ github.sha }}",
                     "downloadURL": "https://github.com/Mehdirben/iosapp/releases/download/build-${{ github.run_number }}/MyiOSApp.ipa",
                     "size": $(stat -f%z build/MyiOSApp.ipa)
                   }
