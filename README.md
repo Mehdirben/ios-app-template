@@ -82,7 +82,12 @@ git commit -m "Initial commit: fresh iOS app"
 https://github.com/Mehdirben/iosapp/releases/latest/download/MyiOSApp.ipa
 ```
 
-- In LiveContainer: **+** → **Install from URL** → paste the URL. Installing over an existing copy updates the app.
+- **Best: add this repo as a LiveContainer source (one-time setup).** Every push also publishes an AltStore-format `apps.json` alongside the IPA. Add it to LiveContainer **once** and it manages updates by itself — the app appears in your library and LiveContainer shows an **Update** button whenever a new build lands:
+  ```
+  livecontainer://add-source?url=https://github.com/Mehdirben/iosapp/releases/latest/download/apps.json
+  ```
+  (or **+** → **Add Source** → paste the same `apps.json` URL). After this, updating is just: push code → open LiveContainer → tap Update.
+- Plain install/update by URL: **+** → **Install from URL** → paste the IPA URL. Installing over an existing copy updates the app.
 - One-tap update link (Safari or Shortcuts):
   ```
   livecontainer://install?url=https://github.com/Mehdirben/iosapp/releases/latest/download/MyiOSApp.ipa
