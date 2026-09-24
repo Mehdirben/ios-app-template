@@ -71,16 +71,6 @@ jobs:
           cd build
           zip -r -q MyiOSApp.ipa Payload
 
-      # Publishes the IPA as a downloadable artifact on the workflow run page
-      # (Actions tab -> this run -> Artifacts section). Deleted after 14 days.
-      # Mostly useful for pull-request builds, which skip the Release step below.
-      - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: MyiOSApp-unsigned-ipa
-          path: build/MyiOSApp.ipa
-          retention-days: 14
-
       # Generates an AltStore-format source (apps.json) describing this build.
       # Added to LiveContainer ONCE (+ -> Add Source, or
       # livecontainer://source?url=<encoded-json-url>), it makes LiveContainer list
