@@ -1,0 +1,121 @@
+# Name of the workflow, shown in the GitHub "Actions" tab and on commit checks
+name: Build iOS App (Unsigned IPA)
+
+# Events that trigger this workflow to run
+on:
+  push:
+    # Rebuild the app on every push to the main/master branch
+    branches: [ main, master ]
+  pull_request:
+    # Also build PRs targeting main/master, so breakage is caught before merging
+    branches: [ main, master ]
+  # Adds a "Run workflow" button in the Actions tab for manual builds
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Package IPA
+    # GitHub's free hosted macOS runner — required because only macOS/Xcode can build iOS apps
+    runs-on: macos-15
+
+    # Allows the workflow's built-in GITHUB_TOKEN to create Releases below
+    permissions:
+      contents: write
+
+    steps:
+      # Downloads this repository's code into the runner's workspace
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Reads app metadata dynamically from project.yml so nothing is hardcoded.
+      # If you rename the app in project.yml, CI adapts automatically.
+      - name: Read Project Configuration
+        run: |
+          APP_NAME=$(ruby -ryaml -e 'puts YAML.load_file("project.yml")["name"]')
+          INFO_PLIST=$(ruby -ryaml -e 'puts YAML.load_file("project.yml").dig("settings", "base", "INFOPLIST_FILE") || "Sources/App/Info.plist"')
+          echo "APP_NAME=$APP_NAME" >> "$GITHUB_ENV"
+          echo "INFO_PLIST=$INFO_PLIST" >> "$GITHUB_ENV"
+          echo "Discovered App Name: $APP_NAME"
+          echo "Discovered Info.plist: $INFO_PLIST"
+
+      # Stamps the CI run number into CFBundleVersion so each build has a
+      # distinct build version
+      - name: Stamp Build Number
+        run: |
+          if [ -f "$INFO_PLIST" ]; then
+            plutil -replace CFBundleVersion -string "${{ github.run_number }}" "$INFO_PLIST"
+          fi
+
+      # Explicitly selects the latest stable Xcode release installed on the runner
+      - name: Select Latest Stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # Purely informational: logs which Xcode version compiled the app
+      - name: Show Xcode Version
+        run: xcodebuild -version
+
+      # Installs XcodeGen, skipping brew auto-update and cleanup to save time
+      - name: Install XcodeGen
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+        run: brew install xcodegen
+
+      # Generates the Xcode project dynamically from project.yml.
+      # Any new .swift file added under Sources/App/ is picked up automatically at this step.
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      # Caches Xcode DerivedData and SwiftPM packages for faster incremental builds
+      - name: Cache Build Artifacts
+        uses: actions/cache@v5
+        with:
+          path: |
+            build/DerivedData
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-xcode-${{ hashFiles('project.yml', 'Sources/**') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-
+
+      # Compiles an optimized Release build for physical iPhones into an .xcarchive.
+      # The CODE_SIGNING_* flags disable code signing: CI has no Apple certificates,
+      # so the app is built UNSIGNED — a sideloading tool (Impactor/Sideloadly) signs
+      # it later with your free personal Apple ID at install time.
+      - name: Build Archive
+        run: |
+          xcodebuild archive \
+            -project "${APP_NAME}.xcodeproj" \
+            -scheme "$APP_NAME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "build/${APP_NAME}.xcarchive" \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      # Wraps the compiled app into an IPA — the format iPhones install.
+      # Dynamically locates the generated .app bundle inside the xcarchive.
+      - name: Package Payload to IPA
+        run: |
+          mkdir -p build/Payload
+          APP_BUNDLE=$(find "build/${APP_NAME}.xcarchive/Products/Applications" -maxdepth 1 -name "*.app" | head -n 1)
+          cp -r "$APP_BUNDLE" build/Payload/
+          cd build
+          zip -r -q "${APP_NAME}.ipa" Payload
+
+      # Attaches the compiled IPA directly to a GitHub Release for 1-click download to PC.
+      # Releases do not consume GitHub Actions artifact storage quota.
+      # Runs on push and manual dispatch; skipped for pull_request events,
+      # which get a read-only token.
+      - name: Publish IPA to GitHub Release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}" \
+            "build/${APP_NAME}.ipa" \
+            --title "Build ${{ github.run_number }}" \
+            --generate-notes

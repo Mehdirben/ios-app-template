@@ -1,0 +1,17 @@
+# Xcode & XcodeGen
+*.xcodeproj/
+*.xcworkspace/
+*.xcuserstate
+build/
+DerivedData/
+.DS_Store
+
+# Artifacts
+*.ipa
+*.zip
+
+# LaTeX Build Artifacts
+*.aux
+*.log
+*.out
+*.toc

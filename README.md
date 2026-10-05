@@ -1,0 +1,88 @@
+# Modern iOS Starter App (CI-Powered)
+
+A modern SwiftUI iOS application configured to build in the cloud via **GitHub Actions** and install onto physical iPhones for **free** without needing a local Mac or a paid Apple Developer program.
+
+<p align="center">
+  <a href="GUIDE_IOS_TEMPLATE.md">
+    <img src="https://img.shields.io/badge/📖_Complete_Installation_Guide-Click_Here_to_Read-2563EB?style=for-the-badge&logo=gitbook&logoColor=white" alt="Read the Guide" />
+  </a>
+</p>
+
+---
+
+## Highlights
+
+- **No Mac Required**: Code on Linux, Windows, or macOS using any editor (VS Code, Neovim, etc.).
+- **Cloud Compilation**: GitHub Actions compiles Swift code and packages unsigned IPAs using macOS runners and the latest stable Xcode.
+- **Declarative Xcode Project**: Uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`project.yml`) so you never have to manually edit messy `.xcodeproj` files.
+- **100% Free iPhone Installation**: Sideload onto any physical iPhone using personal free Apple IDs.
+
+---
+
+## Documentation
+
+- [**Cross-Platform Installation Guide (GUIDE_IOS_TEMPLATE.md)**](GUIDE_IOS_TEMPLATE.md): Detailed step-by-step instructions with platform dropdowns for **Linux (Fedora, Ubuntu, Arch)**, **Windows**, and **macOS**.
+- [**Printable PDF Guide (GUIDE_IOS_TEMPLATE.pdf)**](GUIDE_IOS_TEMPLATE.pdf): Typeset PDF version of the complete guide.
+
+---
+
+## Project Structure
+
+```
+├── .github/
+│   └── workflows/
+│       └── build.yml        # GitHub Actions CI workflow (Latest Xcode / macOS 15)
+├── Sources/
+│   └── App/
+│       ├── iOSApp.swift     # SwiftUI @main entry point
+│       ├── ContentView.swift# Main SwiftUI view
+│       ├── Info.plist       # Bundle metadata
+│       └── Assets.xcassets  # App icon & color catalogs
+├── project.yml              # Declarative XcodeGen configuration
+├── .gitignore
+├── GUIDE_IOS_TEMPLATE.md    # Full installation & sideloading guide
+├── GUIDE_IOS_TEMPLATE.tex   # LaTeX source for printable PDF guide
+├── GUIDE_IOS_TEMPLATE.pdf   # Compiled publication-ready PDF guide
+└── README.md
+```
+
+---
+
+## Quick Start
+
+### 1. Clone, Re-initialize Git & Push
+```bash
+# Clone this template
+git clone https://github.com/Mehdirben/iosapp.git my-ios-app
+cd my-ios-app
+
+# Re-initialize a fresh git history
+rm -rf .git
+git init
+git add .
+git commit -m "Initial commit: fresh iOS app"
+```
+
+**Push to GitHub:**
+- **In VS Code (Easiest)**: Open the folder (`code .`), go to the **Source Control** tab (`Ctrl+Shift+G`), and click **"Publish to GitHub"**. It automatically creates the repository and pushes!
+- **Or via CLI**:
+  ```bash
+  git branch -M main
+  git remote add origin https://github.com/<your-user>/<your-repo>.git
+  git push -u origin main
+  ```
+
+*(Optional: Rename your app in `project.yml` and `Sources/App/Info.plist` before pushing).*
+
+### 2. Install on iPhone from PC (via USB)
+
+1. **Download the IPA to your computer**:
+   - Download `MyiOSApp.ipa` directly from the repository's **Releases** page.
+   - Direct download URL for the latest build:
+     ```
+     https://github.com/Mehdirben/iosapp/releases/latest/download/MyiOSApp.ipa
+     ```
+
+2. **Connect iPhone & Install**:
+   - Connect your iPhone to your PC using a standard USB cable.
+   - Follow the **[Complete Installation Guide (GUIDE_IOS_TEMPLATE.md)](GUIDE_IOS_TEMPLATE.md)** for step-by-step instructions for your PC operating system (**Linux**, **Windows**, or **macOS**), developer mode setup, and troubleshooting.
