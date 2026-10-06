@@ -257,11 +257,11 @@ journalctl -u usbmuxd -b | grep "lockdown error -8"  # failure signature
 - **If you want both**: connect the iPhone with hotspot off (usbmuxd completes its handshake), then enable hotspot — both coexist fine afterwards.
 
 #### 4. usbmuxd Wedged Mid-Session (Manual Quick Fix)
-If the phone is attached but invisible (typically after toggling the hotspot while plugged in), restart the daemon:
+If the phone is attached but invisible (typically after toggling the hotspot while plugged in, or reconnecting while locked), restart the daemon:
 ```bash
 lsusb | grep -i apple   # phone still physically connected?
 idevice_id -l           # empty output = usbmuxd lost it
-systemctl restart usbmuxd
+sudo systemctl restart usbmuxd
 ```
 
 Test device communication anytime with:
@@ -269,6 +269,28 @@ Test device communication anytime with:
 idevice_id -l
 ```
 *(Your iPhone's 40-character UDID should print immediately).*
+
+#### 5. Permanent Fix: Prevent usbmuxd Freezes & Auto-Revive Service
+By default on Linux distributions (especially Fedora), `usbmuxd.service` is packaged as **static** without an `[Install]` section. This means running `sudo systemctl enable` does not actually register it for persistent boot startup. Instead, it relies strictly on udev triggers, which tell the daemon to terminate (`usbmuxd -x`) when a device is unplugged. Furthermore, if a USB connection drops mid-transfer or reconnects while the screen is locked, `usbmuxd` can enter an unrecoverable deadlock in `libusb` and stop responding to Impactor without systemd automatically restarting it.
+
+To keep `usbmuxd` permanently active across reboots and automatically restart it if it ever hangs or terminates:
+```bash
+sudo mkdir -p /etc/systemd/system/usbmuxd.service.d
+sudo tee /etc/systemd/system/usbmuxd.service.d/override.conf << 'EOF'
+[Unit]
+Description=Socket daemon for the usbmux protocol used by Apple devices
+
+[Service]
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now usbmuxd
+```
 
 </details>
 
