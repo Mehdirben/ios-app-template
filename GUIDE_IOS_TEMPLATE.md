@@ -270,11 +270,23 @@ idevice_id -l
 ```
 *(Your iPhone's 40-character UDID should print immediately).*
 
-#### 5. Permanent Fix: Prevent usbmuxd Freezes & Auto-Revive Service
-By default on Linux distributions (especially Fedora), `usbmuxd.service` is packaged as **static** without an `[Install]` section. This means running `sudo systemctl enable` does not actually register it for persistent boot startup. Instead, it relies strictly on udev triggers, which tell the daemon to terminate (`usbmuxd -x`) when a device is unplugged. Furthermore, if a USB connection drops mid-transfer or reconnects while the screen is locked, `usbmuxd` can enter an unrecoverable deadlock in `libusb` and stop responding to Impactor without systemd automatically restarting it.
+#### 5. Permanent Fix: Prevent usbmuxd Freezes & Auto-Recovery
+On Linux distributions (especially Fedora), two distinct issues can cause your iPhone to disappear from Impactor:
+1. **USB-Tethering Conflict (`ipheth`)**: When plugged in with cellular data/hotspot enabled, the Linux `ipheth` kernel driver clashes with `usbmuxd`, causing an instant unbind event that freezes `usbmuxd` inside a `libusb` poll loop.
+2. **Silent Daemon Hangs**: When `usbmuxd` deadlocks in memory, systemd still marks it as running (`Active: running`), meaning standard restart policies do not trigger.
 
-To keep `usbmuxd` permanently active across reboots and automatically restart it if it ever hangs or terminates:
+Apply this complete 2-step permanent fix:
+
+##### Step A: Blacklist `ipheth` (Prevents USB Collision)
 ```bash
+echo "blacklist ipheth" | sudo tee /etc/modprobe.d/blacklist-ipheth.conf
+sudo rmmod ipheth 2>/dev/null || true
+```
+
+##### Step B: Enable Persistent Service & Automated Self-Healing Watchdog
+This keeps `usbmuxd` persistent on boot and adds an automated timer that verifies socket responsiveness every 20 seconds, automatically reviving the daemon if it ever freezes:
+```bash
+# 1. Ensure persistent service across boots
 sudo mkdir -p /etc/systemd/system/usbmuxd.service.d
 sudo tee /etc/systemd/system/usbmuxd.service.d/override.conf << 'EOF'
 [Unit]
@@ -288,8 +300,43 @@ RestartSec=2
 WantedBy=multi-user.target
 EOF
 
+# 2. Install automated healthcheck watchdog script
+sudo tee /usr/local/bin/usbmuxd-healthcheck.sh << 'EOF'
+#!/bin/bash
+if ! timeout 2 /usr/bin/idevice_id -l > /dev/null 2>&1; then
+    if lsusb | grep -qi "05ac:"; then
+        systemctl restart usbmuxd
+    fi
+fi
+EOF
+sudo chmod +x /usr/local/bin/usbmuxd-healthcheck.sh
+
+# 3. Create systemd timer for background watchdog
+sudo tee /etc/systemd/system/usbmuxd-healthcheck.service << 'EOF'
+[Unit]
+Description=Healthcheck and auto-recovery for usbmuxd
+After=usbmuxd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/usbmuxd-healthcheck.sh
+EOF
+
+sudo tee /etc/systemd/system/usbmuxd-healthcheck.timer << 'EOF'
+[Unit]
+Description=Periodic healthcheck for usbmuxd (every 20s)
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=20s
+
+[Install]
+WantedBy=timers.target
+EOF
+
 sudo systemctl daemon-reload
 sudo systemctl enable --now usbmuxd
+sudo systemctl enable --now usbmuxd-healthcheck.timer
 ```
 
 </details>

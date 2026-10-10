@@ -550,11 +550,25 @@ idevice_id -l
 \end{lstlisting}
 \textit{(Your iPhone's 40-character UDID should print immediately).}
 
-\subsubsection*{5. Permanent Fix: Prevent usbmuxd Freezes \& Auto-Revive Service}
-By default on Linux distributions (especially Fedora), \texttt{usbmuxd.service} is packaged as \textbf{static} without an \texttt{[Install]} section. This means running \texttt{sudo systemctl enable} does not actually register it for persistent boot startup. Instead, it relies strictly on udev triggers, which tell the daemon to terminate (\texttt{usbmuxd -x}) when a device is unplugged. Furthermore, if a USB connection drops mid-transfer or reconnects while the screen is locked, \texttt{usbmuxd} can enter an unrecoverable deadlock in \texttt{libusb} and stop responding to Impactor without systemd automatically restarting it.
+\subsubsection*{5. Permanent Fix: Prevent usbmuxd Freezes \& Automated Recovery}
+On Linux distributions (especially Fedora), two distinct issues can cause your iPhone to disappear from Impactor:
+\begin{enumerate}
+    \item \textbf{USB-Tethering Conflict (\texttt{ipheth})}: When plugged in with cellular data/hotspot active, the Linux \texttt{ipheth} kernel driver clashes with \texttt{usbmuxd}, triggering an instant unbind event that freezes \texttt{usbmuxd} inside a \texttt{libusb} poll loop.
+    \item \textbf{Silent Daemon Hangs}: When \texttt{usbmuxd} deadlocks in memory, systemd still considers it active (\texttt{Active: running}), meaning standard process restart policies do not trigger.
+\end{enumerate}
 
-To keep \texttt{usbmuxd} permanently active across reboots and automatically restart it if it ever hangs or terminates:
+Apply this complete 2-step permanent solution:
+
+\paragraph*{Step A: Blacklist \texttt{ipheth} (Prevents USB Collision)}
 \begin{lstlisting}[language=bash]
+echo "blacklist ipheth" | sudo tee /etc/modprobe.d/blacklist-ipheth.conf
+sudo rmmod ipheth 2>/dev/null || true
+\end{lstlisting}
+
+\paragraph*{Step B: Persistent Service \& Automated Self-Healing Watchdog}
+This configures \texttt{usbmuxd} to auto-start on boot and runs an automated timer that verifies socket responsiveness every 20 seconds, reviving the daemon if it ever freezes:
+\begin{lstlisting}[language=bash]
+# 1. Ensure persistent service across boots
 sudo mkdir -p /etc/systemd/system/usbmuxd.service.d
 sudo tee /etc/systemd/system/usbmuxd.service.d/override.conf << EOF
 [Unit]
@@ -568,8 +582,43 @@ RestartSec=2
 WantedBy=multi-user.target
 EOF
 
+# 2. Install automated healthcheck watchdog script
+sudo tee /usr/local/bin/usbmuxd-healthcheck.sh << EOF
+#!/bin/bash
+if ! timeout 2 /usr/bin/idevice_id -l > /dev/null 2>&1; then
+    if lsusb | grep -qi "05ac:"; then
+        systemctl restart usbmuxd
+    fi
+fi
+EOF
+sudo chmod +x /usr/local/bin/usbmuxd-healthcheck.sh
+
+# 3. Create systemd timer for background watchdog
+sudo tee /etc/systemd/system/usbmuxd-healthcheck.service << EOF
+[Unit]
+Description=Healthcheck and auto-recovery for usbmuxd
+After=usbmuxd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/usbmuxd-healthcheck.sh
+EOF
+
+sudo tee /etc/systemd/system/usbmuxd-healthcheck.timer << EOF
+[Unit]
+Description=Periodic healthcheck for usbmuxd (every 20s)
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=20s
+
+[Install]
+WantedBy=timers.target
+EOF
+
 sudo systemctl daemon-reload
 sudo systemctl enable --now usbmuxd
+sudo systemctl enable --now usbmuxd-healthcheck.timer
 \end{lstlisting}
 
 \subsection*{iOS: ``Untrusted Developer'' Error when Opening App}
